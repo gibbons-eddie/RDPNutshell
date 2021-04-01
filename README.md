@@ -10,8 +10,8 @@ This program tests strings and numbers, and can also exit when "exit" is typed.
 Example:
 
 Eddie;\
-String entered: Eddie\
+`String entered: Eddie`\
 45;\
-Number entered: 45\
+`Number entered: 45`\
 exit;\
-Good night.
+`Good night.`
