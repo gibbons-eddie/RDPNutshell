@@ -11,7 +11,7 @@ int yyerror(char* s);
 %type <number> NUMBER_LITERAL
 
 %union {
-	char name[20];
+	char name1[20];
 	int number;
 }
 
