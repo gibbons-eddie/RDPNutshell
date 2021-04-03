@@ -3,15 +3,6 @@
 Once inside the directory, run:
 
 1. make
-2. ./test
+2. ./main
 
-This program tests strings and numbers, and can also exit when "exit" is typed.
-
-Example:
-
-Eddie;\
-`String entered: Eddie`\
-45;\
-`Number entered: 45`\
-exit;\
-`Good night.`
+Features currently working: unalias, alias (for the most part, need clarification from TA), bye, cd (need to check edge cases).
