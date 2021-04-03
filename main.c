@@ -31,6 +31,7 @@ int main()
         printf("RDPSHELL:");
         yyparse();
 
+        //this for loop is for debugging only, I left it in so you can get an idea of how the alias table looks.
         for(int i = 0; i < 5; i++)
         {
             //prints first 5 aliases in table for debugging
