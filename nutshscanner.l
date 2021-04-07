@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
-bool isAlias(char * name)
+bool isAlias(char* name)
 {
     for(int i = 0; i < MAX_TABLE_LENGTH; i++)
     {
@@ -16,7 +16,7 @@ bool isAlias(char * name)
     return false;
 }
 
-char * getAliasDefinition(char * name)
+char * getAliasDefinition(char* name)
 {
     for(int i = 0; i < MAX_TABLE_LENGTH; i++)
     {
