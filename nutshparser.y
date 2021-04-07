@@ -10,12 +10,11 @@ int yyerror(char* s);
 int runCD(char* arg);
 int runSetAlias(char* name, char* word);
 int runUnalias(char* name);
-
-void addToVarTable(char* var, char* val);
 void addToAliasTable(char* var, char* val);
 
 void setEnvVar(char* envVarName, char* val);
 void listEnvVar();
+void deleteEnvVar(char* envVarName);
 
 %}
 
@@ -38,6 +37,7 @@ cmd_line    :
 	| UNALIAS NAME END				{runUnalias($2); return 1;}
 	| SETENV WORD WORD END			{setEnvVar($2, $3); return 1;}
 	| PRINTENV END					{listEnvVar(); return 1;}
+	| UNSETENV WORD END				{deleteEnvVar($2); return 1;}
 
 %%
 
@@ -50,17 +50,17 @@ int yyerror(char* s)
 int runCD(char* arg) {
 	if (arg[0] != '/') 
 	{ // arg is relative path
-		strcat(varTable.word[0], "/");
-		strcat(varTable.word[0], arg);
+		strcat(varTable.var[0], "/");
+		strcat(varTable.var[0], arg);
 
-		if(chdir(varTable.word[0]) == 0) 
+		if(chdir(varTable.var[0]) == 0) 
 		{
 			return 1;
 		}
 		else 
 		{
 			getcwd(cwd, sizeof(cwd));
-			strcpy(varTable.word[0], cwd);
+			strcpy(varTable.var[0], cwd);
 			printf("Directory not found\n");
 			return 1;
 		}
@@ -68,7 +68,7 @@ int runCD(char* arg) {
 	else { // arg is absolute path
 		if(chdir(arg) == 0)
 		{
-			strcpy(varTable.word[0], arg);
+			strcpy(varTable.var[0], arg);
 			return 1;
 		}
 		else 
@@ -117,22 +117,6 @@ int runUnalias(char* name)
 	return 1;
 }
 
-void addToVarTable(char* var, char* word)
-{
-	for(int i = 0; i < MAX_TABLE_LENGTH; i++)
-	{
-		if(varTable.var[i][0]=='\0')
-		{
-			strcpy(varTable.var[i], var);
-			strcpy(varTable.word[i], word);
-			return;
-		}
-	}	
-
-	printf("ERROR: variable table is full.");
-
-}
-
 void addToAliasTable(char* name, char* word)
 {
     for(int i = 0; i < MAX_TABLE_LENGTH; i++)
@@ -153,28 +137,44 @@ void setEnvVar(char* envVarName, char* val)
 {
 	for (int i = 0; i < MAX_TABLE_LENGTH; i++)
 	{
-		if (envTable.name[i][0] == '\0')
+		if (varTable.var[i][0] == '\0')
 		{
-			strcpy(envTable.name[i], envVarName);
-			strcpy(envTable.value[i], val);
+			strcpy(varTable.var[i], envVarName);
+			strcpy(varTable.value[i], val);
 			return;
 		}
 	}
 
-	/*printf("New environment variable: %s\n
-			Its value: %s\n");*/
+	printf("ERROR: variable table is full.");
 }
 
 void listEnvVar()
 {
 	for (int i = 0; i < MAX_TABLE_LENGTH; i++)
 	{
-		char* tempName = envTable.name[i];
-		char* tempValue = envTable.value[i];
+		char* tempName = varTable.var[i];
+		char* tempValue = varTable.value[i];
 
 		if (*tempName != '\0')
 		{
 			printf("Environment Variable: %s, Value: %s\n", tempName, tempValue);
+		}
+	}
+}
+
+void deleteEnvVar(char* envVarName)
+{
+	for (int i = 0; i < MAX_TABLE_LENGTH; i++)
+	{
+		char* tempName = varTable.var[i];
+		char* tempValue = varTable.value[i];
+
+		if (*tempName == *envVarName)
+		{
+			strcpy(varTable.var[i], "");
+			strcpy(varTable.value[i], "");
+
+			return;
 		}
 	}
 }

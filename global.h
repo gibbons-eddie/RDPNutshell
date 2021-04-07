@@ -6,7 +6,7 @@
 
 struct variableTableStruct {
    char var[MAX_TABLE_LENGTH][MAX_WORD_LENGTH];
-   char word[MAX_TABLE_LENGTH][MAX_WORD_LENGTH];
+   char value[MAX_TABLE_LENGTH][MAX_WORD_LENGTH];
 };
 
 struct aliasTableStruct {
@@ -14,16 +14,10 @@ struct aliasTableStruct {
 	char word[MAX_TABLE_LENGTH][MAX_WORD_LENGTH];
 };
 
-struct envVarTableStruct {
-   char name[MAX_TABLE_LENGTH][MAX_WORD_LENGTH];
-   char value[MAX_TABLE_LENGTH][MAX_WORD_LENGTH];
-};
-
 /* global variables/objects */
 
 struct variableTableStruct varTable;
 struct aliasTableStruct aliasTable;
-struct envVarTableStruct envTable;
 
 char cwd[4096];
 

@@ -9,18 +9,14 @@ void shell_init()
     getcwd(cwd, sizeof(cwd));
 
     memset(varTable.var,'\0', sizeof(varTable.var));
-    memset(varTable.word, '\0', sizeof(varTable.word));
+    memset(varTable.value, '\0', sizeof(varTable.value));
     memset(aliasTable.name, '\0', sizeof(aliasTable.name));
     memset(aliasTable.word, '\0', sizeof(aliasTable.word));
-    
-    memset(envTable.name, '\0', sizeof(envTable.name));
-    memset(envTable.value, '\0', sizeof(envTable.value));
 
-    addToVarTable("HOME", cwd);
-    addToVarTable("PWD", cwd);
-    addToVarTable("PROMPT", "nutshell");
-    addToVarTable("PATH",  ".:/bin");
-
+    setEnvVar("HOME", cwd);
+    setEnvVar("PWD", cwd);
+    setEnvVar("PROMPT", "nutshell");
+    setEnvVar("PATH",  ".:/bin");
     setEnvVar("Eddie", "Gibbons");
 }
 

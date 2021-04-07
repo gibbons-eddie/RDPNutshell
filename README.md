@@ -13,7 +13,8 @@ bye\
 cd (need to check edge cases)\
 printenv\
 setenv\
+unsetenv\
 \
 **Features in progress:**\
 \
-unsetenv
+
