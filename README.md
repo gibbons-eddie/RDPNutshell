@@ -19,4 +19,4 @@ unsetenv\
 **Features in progress:**\
 
 mkdir\
-ls\
+ls
