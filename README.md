@@ -13,9 +13,9 @@ bye\
 cd (need to check edge cases)\
 printenv\
 setenv\
-unsetenv\
+unsetenv
 
-**Features in progress:**\
+**Features in progress:**
 
 mkdir\
 ls
