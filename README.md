@@ -1,4 +1,4 @@
-# TP43_Shell
+# TP43_Nutshell
 
 Once inside the directory, run:
 
@@ -15,6 +15,8 @@ printenv\
 setenv\
 unsetenv\
 \
-**Features in progress:**\
-\
 
+**Features in progress:**\
+
+mkdir\
+ls\
