@@ -15,4 +15,4 @@ printenv\
 \
 **Features in progress:**\
 \
-setenv (throwing syntax error)\
+setenv (throwing syntax error)
