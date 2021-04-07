@@ -12,7 +12,8 @@ alias (for the most part, need clarification from TA)\
 bye\
 cd (need to check edge cases)\
 printenv\
+setenv\
 \
 **Features in progress:**\
 \
-setenv (throwing syntax error)
+unsetenv

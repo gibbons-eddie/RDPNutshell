@@ -36,7 +36,7 @@ cmd_line    :
 	| ALIAS NAME UNALIAS END		{runSetAlias($2, $3); return 1;}
 	| ALIAS NAME BYE END			{runSetAlias($2, $3); return 1;}
 	| UNALIAS NAME END				{runUnalias($2); return 1;}
-	| SETENV NAME NAME END			{setEnvVar($2, $3); return 1;}
+	| SETENV WORD WORD END			{setEnvVar($2, $3); return 1;}
 	| PRINTENV END					{listEnvVar(); return 1;}
 
 %%
