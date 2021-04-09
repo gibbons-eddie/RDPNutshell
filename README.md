@@ -17,5 +17,5 @@ unsetenv
 
 **Features in progress:**
 
-mkdir\
-ls
+environment variable expansion\
+piping
