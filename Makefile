@@ -1,9 +1,15 @@
-default:
-	flex -l lexer.l
-	bison -dv eddie.y
-	gcc -o test eddie.tab.c lex.yy.c -lfl
-	clear
+CC=/usr/bin/cc
+
+all:  bison-config flex-config main
+
+bison-config:
+	bison -d nutshparser.y
+
+flex-config:
+	flex  nutshscanner.l
+
+main: 
+	$(CC) main.c nutshparser.tab.c lex.yy.c -o main
 
 clean:
-	rm test eddie.tab.c eddie.tab.h lex.yy.c eddie.output
-	clear
+	rm nutshparser.tab.c nutshparser.tab.h lex.yy.c main
