@@ -31,7 +31,6 @@ char* getAliasDefinition(char* name)
 
 %}
 %array
-%s alias_condition
 %s quote_condition
 %option noyywrap
 
@@ -43,22 +42,24 @@ ANYCHAR     [)(*&%$#@!`;,\.a-zA-Z0-9'/*_=~ -][)(*&%$#@!`;,\.a-zA-Z0-9'/*_=~ -]*
 <quote_condition>{ANYCHAR}+        {yylval.string = strdup(yytext); return WORD;}
 <quote_condition>[\"]              {BEGIN(INITIAL);}
 
-<alias_condition>[ ]                {}
-<alias_condition>{CHAR}+            {yylval.string = strdup(yytext); BEGIN(INITIAL); return NAME;}
-
 [ ]         { }
-setenv      {  yylval.string = strdup(yytext); return SETENV; }
-printenv    {  yylval.string = strdup(yytext); return PRINTENV; }
-unsetenv    {  yylval.string = strdup(yytext); return UNSETENV; }
-cd          {  yylval.string = strdup(yytext); return CD; }
-alias       {  yylval.string = strdup(yytext); BEGIN(alias_condition); return ALIAS;}
-unalias     {  yylval.string = strdup(yytext); BEGIN(alias_condition); return UNALIAS; }
-bye         {  yylval.string = strdup(yytext); return BYE; }
-"\n"		{  yylval.string = strdup(yytext); return END; }
-[\"]        {  yylval.string = strdup(yytext); BEGIN(quote_condition); }
+setenv      {  aliasExpansion = false; yylval.string = strdup(yytext); return SETENV; }
+printenv    {  aliasExpansion = false; yylval.string = strdup(yytext); return PRINTENV; }
+unsetenv    {  aliasExpansion = false; yylval.string = strdup(yytext); return UNSETENV; }
+cd          {  aliasExpansion = false; yylval.string = strdup(yytext); return CD; }
+alias       {  aliasExpansion = false; yylval.string = strdup(yytext); return ALIAS;}
+unalias     {  aliasExpansion = false; yylval.string = strdup(yytext); return UNALIAS; }
+bye         {  aliasExpansion = false; yylval.string = strdup(yytext); return BYE; }
+"\n"		{  aliasExpansion = false; yylval.string = strdup(yytext); return END; }
+[\"]        {  aliasExpansion = false; yylval.string = strdup(yytext); BEGIN(quote_condition); }
+[|]         {  aliasExpansion = false;  yylval.string = strdup(yytext); return PIPE; }
+[<]         {  aliasExpansion = false;  yylval.string = strdup(yytext); return LEFTC;}
+[>]         {  aliasExpansion = false;  yylval.string = strdup(yytext); return RIGHTC;}
+[&]         {  aliasExpansion = false;  yylval.string = strdup(yytext); return AMPERSAND;}
 {CHAR}+     {
-                if(isAlias(yytext))
+                if(aliasExpansion == true && isAlias(yytext))
                 {
+                    
                     char * definition = strdup(getAliasDefinition(yytext));
                     for (int i = strlen(getAliasDefinition(yytext)) - 1; i >= 0; --i )
                     {
@@ -68,6 +69,7 @@ bye         {  yylval.string = strdup(yytext); return BYE; }
                 }
                 else
                 {
+                    aliasExpansion = false;
                     yylval.string = strdup(yytext);
                     return WORD;
                 }    

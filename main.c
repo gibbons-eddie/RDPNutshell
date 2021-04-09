@@ -13,11 +13,15 @@ void shell_init()
     memset(aliasTable.name, '\0', sizeof(aliasTable.name));
     memset(aliasTable.word, '\0', sizeof(aliasTable.word));
 
-    setEnvVar("HOME", cwd);
     setEnvVar("PWD", cwd);
-    setEnvVar("PROMPT", "nutshell");
+    setEnvVar("HOME", cwd);
+    setEnvVar("PROMPT", "RDPSHELL");
     setEnvVar("PATH",  ".:/bin");
-    setEnvVar("Eddie", "Gibbons");
+
+    aliasExpansion = true;
+    isGeneric = false;
+
+    commandTable.entriesCount = 0;
 }
 
 int main()
@@ -26,18 +30,26 @@ int main()
 
     for (;;)
     {
-        printf("RDPSHELL: ");
+        printf("%s>>", varTable.value[2]);
         yyparse();
 
-        //this for loop is for debugging only, I left it in so you can get an idea of how the alias table looks.
-        /*for(int i = 0; i < 5; i++)
+        if(isGeneric)
         {
-            //prints first 5 aliases in table for debugging
-            printf("%i. %s ~~~ %s\n", i, aliasTable.name[i], aliasTable.word[i]);
-        }*/
+            executeCommandTable();
+        }
 
-        printf("\n");
+        aliasExpansion = true;
+        isGeneric = false;
+
     }
+}
+
+void executeCommandTable()
+{
+     printf("\n");
+     printCommandTable();
+     //logic for executing GENERAL commands.
+     
 }
 
 
