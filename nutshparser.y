@@ -15,12 +15,14 @@ void addToAliasTable(char* var, char* val);
 void setEnvVar(char* envVarName, char* val);
 void listEnvVar();
 void deleteEnvVar(char* envVarName);
+void runEnvVar(char* envVarName);
+void runCDENV(char* envVanName);
 
 %}
 
 %union {char* string;}
 
-%token <string> SETENV PRINTENV UNSETENV CD ALIAS UNALIAS BYE END WORD PIPE LEFTC RIGHTC AMPERSAND
+%token <string> SETENV PRINTENV UNSETENV RUNENV CD ALIAS UNALIAS BYE END WORD PIPE LEFTC RIGHTC AMPERSAND
 
 %%
 
@@ -57,6 +59,8 @@ cmd_combined:
 
 cmd_bi    :
 	BYE END 		               			{ printf("Goodbye.\n"); exit(1); return 1; }
+	| RUNENV END							{ runEnvVar($1); return 1; }
+	| CD RUNENV END							{ runCDENV($2); return 1; }
 	| CD WORD END        					{ runCD($2); return 1; }
 	| ALIAS END								{ runListAlias(); return 1; }
 	| ALIAS WORD WORD END					{ runSetAlias($2, $3); return 1; }
@@ -87,6 +91,8 @@ int yyerror(char* s)
 }
 
 int runCD(char* arg) {
+	
+	
 	if (arg[0] != '/') 
 	{ // arg is relative path
 		strcat(varTable.value[0], "/");
@@ -94,11 +100,13 @@ int runCD(char* arg) {
 
 		if(chdir(varTable.value[0]) == 0) 
 		{
+			printf("RELATIVE PATH: %s\n", getcwd(cwd, sizeof(cwd)));
 			return 1;
 		}
 		else 
 		{
 			getcwd(cwd, sizeof(cwd));
+			printf("%s\n", getcwd(cwd, sizeof(cwd)));
 			strcpy(varTable.value[0], cwd);
 			printf("Directory not found\n");
 			return 1;
@@ -108,12 +116,87 @@ int runCD(char* arg) {
 		if(chdir(arg) == 0)
 		{
 			strcpy(varTable.value[0], arg);
+			printf("ABSOLUTE PATH: %s\n", getcwd(cwd, sizeof(cwd)));
 			return 1;
 		}
 		else 
 		{
 			printf("Directory not found\n");
                        	return 1;
+		}
+	}
+}
+
+void runEnvVar(char* envVarName)
+{
+	// extracting just the name of the env into finalTitle
+	
+	char envVarTitle[30];
+	int ni = 0;
+	int ti = 0;
+
+	while (envVarName[ni] != '\0')
+	{
+		if (envVarName[ni] != '$' && envVarName[ni] != '{' && envVarName[ni] != '}')
+		{
+			envVarTitle[ti] = envVarName[ni];
+
+			ti++;
+		}
+		
+		ni++;
+	}
+
+	envVarTitle[ti] = '\0';
+
+	char* finalTitle = envVarTitle;
+
+	// outputting value of env
+
+	for (int i = 0; i < MAX_TABLE_LENGTH; i++)
+	{
+		char* tempName = varTable.var[i];
+		
+		if (*finalTitle == *tempName)
+		{
+			printf("%s\n", varTable.value[i]);
+		}
+	}
+}
+
+void runCDENV(char* envVarName)
+{
+	// extracting just the name of the env into finalTitle
+	
+	char envVarTitle[30];
+	int ni = 0;
+	int ti = 0;
+
+	while (envVarName[ni] != '\0')
+	{
+		if (envVarName[ni] != '$' && envVarName[ni] != '{' && envVarName[ni] != '}')
+		{
+			envVarTitle[ti] = envVarName[ni];
+
+			ti++;
+		}
+		
+		ni++;
+	}
+
+	envVarTitle[ti] = '\0';
+
+	char* finalTitle = envVarTitle;
+
+	// outputting value of env
+
+	for (int i = 0; i < MAX_TABLE_LENGTH; i++)
+	{
+		char* tempName = varTable.var[i];
+		
+		if (*finalTitle == *tempName)
+		{
+			runCD(varTable.value[i]);
 		}
 	}
 }

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "global.h"
 
@@ -6,6 +7,8 @@ int yyparse();
 
 void shell_init()
 {
+    system("clear");
+    
     getcwd(cwd, sizeof(cwd));
 
     memset(varTable.var,'\0', sizeof(varTable.var));
@@ -24,13 +27,23 @@ void shell_init()
     commandTable.entriesCount = 0;
 }
 
+void executeCommandTable()
+{
+     printf("\n");
+     printCommandTable();
+     //logic for executing GENERAL commands.
+     
+
+
+}
+
 int main()
 {
     shell_init();
 
     for (;;)
     {
-        printf("%s>>", varTable.value[2]);
+        printf("%s>> ", varTable.value[2]);
         yyparse();
 
         if(isGeneric)
@@ -42,14 +55,6 @@ int main()
         isGeneric = false;
 
     }
-}
-
-void executeCommandTable()
-{
-     printf("\n");
-     printCommandTable();
-     //logic for executing GENERAL commands.
-     
 }
 
 

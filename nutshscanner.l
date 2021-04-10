@@ -56,11 +56,14 @@ bye         {  aliasExpansion = false; yylval.string = strdup(yytext); return BY
 [<]         {  aliasExpansion = false;  yylval.string = strdup(yytext); return LEFTC;}
 [>]         {  aliasExpansion = false;  yylval.string = strdup(yytext); return RIGHTC;}
 [&]         {  aliasExpansion = false;  yylval.string = strdup(yytext); return AMPERSAND;}
+
+(\$\{[A-Za-z]+\})    { aliasExpansion = false; yylval.string = strdup(yytext); return RUNENV; }
+
 {CHAR}+     {
                 if(aliasExpansion == true && isAlias(yytext))
                 {
                     
-                    char * definition = strdup(getAliasDefinition(yytext));
+                    char* definition = strdup(getAliasDefinition(yytext));
                     for (int i = strlen(getAliasDefinition(yytext)) - 1; i >= 0; --i )
                     {
                         unput(definition[i]);

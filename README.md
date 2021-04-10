@@ -13,9 +13,13 @@ bye\
 cd (need to check edge cases)\
 printenv\
 setenv\
-unsetenv
+unsetenv\
+environment variable expansion
 
 **Features in progress:**
 
-environment variable expansion\
 piping
+
+**Examples of commands that function using environment variable expansion**
+
+cd ${HOME}
