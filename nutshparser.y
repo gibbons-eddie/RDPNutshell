@@ -11,6 +11,8 @@ int runCD(char* arg);
 int runSetAlias(char* name, char* word);
 int runUnalias(char* name);
 void addToAliasTable(char* var, char* val);
+int searchAliasTable(char* name, int index);
+int checkInfiniteAlias(char* word, char* match);
 
 void setEnvVar(char* envVarName, char* val);
 void listEnvVar();
@@ -223,6 +225,12 @@ int runSetAlias(char* name, char* word)
 		}
 	}
 
+	if (checkInfiniteAlias(name, word) == 1)
+	{
+		printf("Error: infinite alias expansion\n");
+		return 1;
+	}
+
 	addToAliasTable(name, word);
 
 	return 1;
@@ -250,6 +258,39 @@ int runListAlias()
 			printf("alias %s='%s'\n",aliasTable.name[i], aliasTable.word[i]);
 		}
 	}
+}
+
+int checkInfiniteAlias(char* word, char* match)
+{
+	int init = searchAliasTable(word, MAX_TABLE_LENGTH);
+	int og = 0;
+
+	while (init != -1)
+	{
+		og = init;
+		init = searchAliasTable(aliasTable.name[init], init);
+	}
+
+	if (strcmp(match, aliasTable.name[og]) == 0)
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
+int searchAliasTable(char* name, int index)
+{
+	for (int i = 0; i < index; i++)
+	{
+		if (strcmp(name, aliasTable.word[i]) == 0)
+		{
+			return i;
+		}
+	}
+
+	// printf("ORIGINAL\n");
+	return -1;
 }
 
 void addToAliasTable(char* name, char* word)

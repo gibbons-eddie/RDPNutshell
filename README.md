@@ -15,12 +15,9 @@ printenv\
 setenv\
 unsetenv\
 environment variable expansion\
-non built-in commands
+non built-in commands\
+infinite alias expansion
 
 **Features in progress:**
 
 piping
-infinite alias expansion
-
-**Examples of commands that function using environment variable expansion**
-
