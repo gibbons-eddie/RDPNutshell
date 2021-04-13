@@ -14,12 +14,13 @@ cd (need to check edge cases)\
 printenv\
 setenv\
 unsetenv\
-environment variable expansion
+environment variable expansion\
+non built-in commands
 
 **Features in progress:**
 
 piping
+infinite alias expansion
 
 **Examples of commands that function using environment variable expansion**
 
-cd ${HOME}
