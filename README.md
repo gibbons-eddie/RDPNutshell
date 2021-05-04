@@ -3,6 +3,10 @@
 **GROUP 43**
 *Eddie Gibbons and Jeremy Triplett*
 
+After downloading and entering the main directory:
+
+1. `make`
+2. `./main`
 
 **Implemented Features**
 <p1>
