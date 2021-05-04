@@ -1,16 +1,18 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/wait.h>
 #include "global.h"
+#include <unistd.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <pthread.h>
 
 int yyparse();
 
+struct binaryPaths getBinaryPaths();
+
+
 void shell_init()
 {
-    system("clear");
-    
     getcwd(cwd, sizeof(cwd));
 
     memset(varTable.var,'\0', sizeof(varTable.var));
@@ -24,63 +26,25 @@ void shell_init()
     setEnvVar("PATH",  ".:/bin");
 
     aliasExpansion = true;
-    isGeneric = false;
+    previousWasQuoteCondition = false;
 
-    commandTable.entriesCount = 0;
+    emptyCommandTable.entriesCount = 0;
+    emptyCommandTable.inputFile = false;
+    emptyCommandTable.outputFile = false;
+    emptyCommandTable.append = false;
+    emptyCommandTable.redirect = false;
+    emptyCommandTable.redirectFile = false;
+    emptyCommandTable.backgroundProcessing = false;
+
+
 }
 
-void executeCommandTable()
+void shell_cleanup()
 {
-     printf("\n");
-     // printCommandTable();
-     // logic for executing GENERAL commands.
+    aliasExpansion = true;
+    previousWasQuoteCondition = false;
 
-    int index = commandTable.entriesCount - 1;
-    int status;
-    char* cmd[commandTable.entries[index].argCount + 2];
-    
-    char path[50], cmdName[50];
-
-    strcpy(path, "/bin/");
-    strcpy(cmdName, commandTable.entries[index].name);
-
-    strcat(path, cmdName);
-
-    cmd[0] = commandTable.entries[index].name;
-    
-    int a = 0;
-    for (; a < commandTable.entries[index].argCount; a++)
-	{
-		cmd[a + 1] = commandTable.entries[index].args[a];
-	}
-    cmd[a + 1] = NULL;
-
-    // printf("%s\n", path);
-    // printf("%s\n", cmd);
-
-    //execv(path, cmd);
-
-    if (fork() == 0)
-    {
-        execv(path, cmd);
-    }
-    else
-    {
-        wait(&status);
-    }
-    
-    /*printf("NAME: %s ", commandTable.entries[index].name);
-	printf("ARGS: ");
-
-	for(int j=0; j < commandTable.entries[index].argCount; j++)
-	{
-		printf("%s ", commandTable.entries[index].args[j]);
-	}
-
-	printf("INPUT: %s OUTPUT: %s", commandTable.entries[index].inputFileName, commandTable.entries[index].outputFileName);
-	printf("\n");*/
-
-
+    commandTable = emptyCommandTable;
 }
 
 int main()
@@ -92,15 +56,199 @@ int main()
         printf("%s>> ", varTable.value[2]);
         yyparse();
 
-        if(isGeneric)
+        if(commandTable.entriesCount != 0)
         {
             executeCommandTable();
         }
-
-        aliasExpansion = true;
-        isGeneric = false;
+    printf("\n");
+    shell_cleanup();
 
     }
+}
+
+void executeCommandTable()
+{
+    //checking to see if commands exist in PATH.
+    struct binaryPaths binaryPaths = getBinaryPaths(); 
+
+    for(int i = 0; i < commandTable.entriesCount; i++)
+    {
+        if(commandTable.entries[i].isBuiltin)
+        {
+            continue;
+        }
+
+        bool found = false;
+        for(int j = 0; j < binaryPaths.count; j++)
+        {
+            char pathCopy[MAX_WORD_LENGTH] = {'\0'};
+            strcpy(pathCopy, binaryPaths.paths[j]);
+            strncat(pathCopy, "/", 1);
+            strcat(pathCopy, commandTable.entries[i].name);
+
+            if(access(pathCopy, F_OK) == 0)
+            {
+                found = true;
+                strcpy(commandTable.entries[i].args[0], pathCopy);
+                break;
+            }
+        }
+
+        if(found == false)
+        {
+            printf("%s not found", commandTable.entries[i].name);
+            return;
+        }
+    }
+    if(commandTable.backgroundProcessing)
+    {
+       
+         if(fork()==0)
+        {
+             pthread_t thr;
+             pthread_create(&thr, NULL, executePipeline(), NULL);
+             pthread_join(thr, NULL);
+        }
+    }
+    else
+    {
+      if(fork()==0)
+        {
+            executePipeline();
+        }
+        else{
+            wait(NULL);
+        }  
+    }
+    
+}
+
+
+int executePipeline()
+{
+//executePipeline() and forkProcesses() were integrated using the following source for reference. source: https://stackoverflow.com/questions/8082932/connecting-n-commands-with-pipes-in-a-shell
+  int fd [2];
+  int input = 0;
+
+  if(commandTable.inputFile)
+    {
+        int opened = open(commandTable.inputFileName, O_RDWR|O_CREAT|O_APPEND, 0600);
+        dup2(opened, 0);
+    }
+
+  for (int i = 0; i < commandTable.entriesCount - 1; i++)
+    {
+      pipe(fd);
+      forkProcesses(input, fd[1], commandTable.entries[i]);
+      close(fd[1]);
+      input = fd[0];
+    }
+
+  if (input != 0)
+  {
+    dup2(input, 0);
+  }
+
+    if(commandTable.outputFile)
+    {
+        if(commandTable.append)
+        {
+            int opened = open(commandTable.outputFileName, O_RDWR|O_CREAT|O_APPEND, 0600);
+            dup2(opened, 1);
+        }
+        else
+        {
+            int opened = open(commandTable.outputFileName, O_RDWR|O_CREAT|O_TRUNC, 0600);
+            dup2(opened, 1);
+        }
+    }
+
+    if(commandTable.redirect)
+    {
+        if(commandTable.redirectFile)
+        {
+            int opened = open(commandTable.redirectFileName, O_RDWR|O_CREAT|O_TRUNC, 0600);
+            dup2(opened, 2);
+        }
+        else
+        {
+            dup2(1, 2);
+        }
+    }
+
+    struct command lastCommand = commandTable.entries[commandTable.entriesCount-1];
+
+    if(lastCommand.isBuiltin)
+    {
+        lastCommand.builtinPointer();
+        exit(0);
+    }
+
+    else
+    {
+        char * pseudoArgs[lastCommand.argCount + 1];
+        for(int z = 0; z < lastCommand.argCount; z++)
+        {
+            pseudoArgs[z] = lastCommand.args[z];
+        }
+        pseudoArgs[lastCommand.argCount] = NULL;
+
+        execv(pseudoArgs[0], pseudoArgs);
+    }
+  
+}
+
+int forkProcesses(int input, int output, struct command cmd)
+{
+  if (fork() == 0)
+    {
+      if (input != 0)
+        {
+          dup2(input, 0);
+          close(input);
+        }
+
+      if (output != 1)
+        {
+          dup2(output, 1);
+          close(output);
+        }
+
+     if(cmd.isBuiltin)
+    {
+        cmd.builtinPointer();
+    }
+    else{
+        char * pseudoArgs[cmd.argCount + 1];
+            for(int z = 0; z < cmd.argCount; z++)
+            {
+                pseudoArgs[z] = cmd.args[z];
+            }
+            pseudoArgs[cmd.argCount] = NULL;
+
+        return execv(pseudoArgs[0], pseudoArgs);
+        }
+    }
+  return 0;
+}
+
+struct binaryPaths getBinaryPaths()
+{
+    struct binaryPaths ret;
+    ret.count = 0;
+    char * str = strdup(varTable.value[PATH_INDEX]);
+
+    char delimiter[] = ":";
+
+    char * tok = strtok(str, delimiter);
+
+    while(tok != NULL)
+    {
+        strcpy(ret.paths[ret.count++], tok);
+        tok = strtok(NULL, delimiter);
+    }
+
+    return ret;
 }
 
 
