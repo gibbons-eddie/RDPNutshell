@@ -3,6 +3,11 @@
 /* structs */
 #define MAX_TABLE_LENGTH 256
 #define MAX_WORD_LENGTH 256
+#define PWD_INDEX 0
+#define HOME_INDEX 1
+#define PROMPT_INDEX 2
+#define PATH_INDEX 3
+
 
 struct variableTable 
 {
@@ -20,15 +25,37 @@ struct command
 {
    char name[MAX_WORD_LENGTH];
    int argCount;
-   char args[MAX_TABLE_LENGTH][MAX_WORD_LENGTH];
-   char inputFileName [MAX_WORD_LENGTH];
-   char outputFileName [MAX_WORD_LENGTH];
+   char * args[MAX_TABLE_LENGTH][MAX_WORD_LENGTH];
+
+   bool isBuiltin;
+   void (*builtinPointer)();
+
 };
 
 struct commandTable
 {
    struct command entries[MAX_TABLE_LENGTH];
    int entriesCount;
+
+   bool inputFile;
+   char inputFileName [MAX_WORD_LENGTH];
+
+   bool outputFile;
+   bool append;
+   char outputFileName [MAX_WORD_LENGTH];
+
+   bool redirect;
+   bool redirectFile;
+   char redirectFileName [MAX_WORD_LENGTH];
+
+   bool backgroundProcessing;
+   
+};
+
+struct binaryPaths
+{
+   char paths[200][200];
+   int count;
 };
 
 /* global variables/objects */
@@ -36,12 +63,12 @@ struct commandTable
 struct variableTable varTable;
 struct aliasTable aliasTable;
 struct commandTable commandTable;
+struct commandTable emptyCommandTable;
 
 char cwd[4096];
 
 bool aliasExpansion;
-bool isGeneric;
-
+bool previousWasQuoteCondition;
 
 
 
